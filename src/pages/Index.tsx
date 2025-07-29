@@ -1,7 +1,7 @@
-import WorkflowBuilder from "@/components/workflow/WorkflowBuilder";
+import EnhancedWorkflowBuilder from "@/components/workflow/EnhancedWorkflowBuilder";
 
 const Index = () => {
-  return <WorkflowBuilder />;
+  return <EnhancedWorkflowBuilder />;
 };
 
 export default Index;
