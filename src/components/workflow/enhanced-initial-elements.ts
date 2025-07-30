@@ -10,6 +10,12 @@ export const enhancedInitialNodes: Node[] = [
       source: 'NetSuite',
       description: 'Remove + rename columns',
       status: 'completed',
+      config: {
+        sourceType: 'netsuite',
+        connectionString: 'configured',
+        autoSync: true,
+        syncFrequency: '30'
+      },
     },
   },
   {
@@ -21,6 +27,12 @@ export const enhancedInitialNodes: Node[] = [
       source: 'Shopify',
       description: 'Clean column names',
       status: 'completed',
+      config: {
+        sourceType: 'shopify',
+        connectionString: 'configured',
+        autoSync: true,
+        syncFrequency: '15'
+      },
     },
   },
   {
@@ -31,6 +43,10 @@ export const enhancedInitialNodes: Node[] = [
       label: 'Combine inventory data',
       description: 'Merge and standardize data from multiple sources',
       status: 'processing',
+      config: {
+        transformationType: 'merge',
+        transformationRules: 'Merge by SKU, standardize column names'
+      },
     },
   },
   {
@@ -41,6 +57,10 @@ export const enhancedInitialNodes: Node[] = [
       label: 'Remove retired products',
       description: 'Filter out discontinued items',
       status: 'idle',
+      config: {
+        filterConditions: '{"status": {"not": "retired"}}',
+        discrepancyThreshold: '0'
+      },
     },
   },
   {
@@ -51,6 +71,11 @@ export const enhancedInitialNodes: Node[] = [
       label: 'Categorize SKUs into product categories with AI',
       description: 'Assign category using AI',
       status: 'idle',
+      config: {
+        aiModel: 'categorization',
+        confidenceThreshold: '85',
+        autoLearning: true
+      },
     },
   },
   {
@@ -61,6 +86,10 @@ export const enhancedInitialNodes: Node[] = [
       label: 'Filter for discrepancies',
       description: 'Keep discrepancies, Remove conflicts',
       status: 'idle',
+      config: {
+        filterConditions: '{"discrepancy": {"exists": true}}',
+        discrepancyThreshold: '5'
+      },
     },
   },
   {
@@ -71,6 +100,10 @@ export const enhancedInitialNodes: Node[] = [
       label: 'Compare inventory: identify discrepancies & assign status',
       description: 'Identify discrepancies, Assign SKU status',
       status: 'idle',
+      config: {
+        transformationType: 'aggregate',
+        transformationRules: 'Compare quantities, identify discrepancies'
+      },
     },
   },
   {
@@ -81,6 +114,11 @@ export const enhancedInitialNodes: Node[] = [
       label: 'Visualize SKU by Status',
       description: 'Display analytics and charts',
       status: 'idle',
+      config: {
+        chartType: 'dashboard',
+        metrics: 'SKU status breakdown, discrepancy analysis',
+        realTime: true
+      },
     },
   },
 ];

@@ -69,6 +69,19 @@ const EnhancedWorkflowBuilder = () => {
     }
   }, [nodes]);
 
+  // Initialize nodes with onConfigure callbacks
+  React.useEffect(() => {
+    setNodes((prevNodes) => 
+      prevNodes.map((node) => ({
+        ...node,
+        data: {
+          ...node.data,
+          onConfigure: () => openNodeConfiguration(node.id),
+        },
+      }))
+    );
+  }, [openNodeConfiguration]);
+
   const onAddNode = useCallback((nodeType: string) => {
     const nodeTypeMap = {
       dataSource: 'enhancedDataSource',
@@ -80,8 +93,9 @@ const EnhancedWorkflowBuilder = () => {
 
     const mappedType = nodeTypeMap[nodeType as keyof typeof nodeTypeMap] || nodeType;
 
+    const newNodeId = `${nodeType}-${Date.now()}`;
     const newNode: Node = {
-      id: `${nodeType}-${Date.now()}`,
+      id: newNodeId,
       type: mappedType,
       position: {
         x: Math.random() * 400 + 100,
@@ -92,7 +106,7 @@ const EnhancedWorkflowBuilder = () => {
         description: getNodeDescription(nodeType),
         status: 'idle',
         config: {},
-        onConfigure: () => openNodeConfiguration(`${nodeType}-${Date.now()}`),
+        onConfigure: () => openNodeConfiguration(newNodeId),
       },
     };
 
