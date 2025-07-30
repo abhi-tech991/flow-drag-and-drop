@@ -230,3 +230,9 @@ All colors MUST be HSL.
 .react-flow__pane::-webkit-scrollbar-thumb:hover {
   background: hsl(var(--primary));
 }
+
+/* Shimmer Animation for Loading States */
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}

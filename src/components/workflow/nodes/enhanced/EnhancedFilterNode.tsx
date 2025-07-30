@@ -19,7 +19,9 @@ const EnhancedFilterNode: React.FC<EnhancedFilterNodeProps> = ({
   const filterColor = 'hsl(var(--workflow-filter))';
 
   const handleConfigureFilters = () => {
-    console.log('Configure filters:', data);
+    if (data.onConfigure) {
+      data.onConfigure();
+    }
   };
 
   return (

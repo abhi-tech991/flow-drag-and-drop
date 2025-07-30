@@ -11,6 +11,7 @@ interface NodeActionButtonProps {
   size?: 'sm' | 'default' | 'lg';
   color?: string;
   disabled?: boolean;
+  loading?: boolean;
   className?: string;
 }
 
@@ -22,6 +23,7 @@ export const NodeActionButton: React.FC<NodeActionButtonProps> = ({
   size = 'sm',
   color,
   disabled = false,
+  loading = false,
   className
 }) => {
   return (
@@ -29,9 +31,10 @@ export const NodeActionButton: React.FC<NodeActionButtonProps> = ({
       variant={variant}
       size={size}
       onClick={onClick}
-      disabled={disabled}
+      disabled={disabled || loading}
       className={cn(
-        "gap-2 transition-all duration-200 hover:scale-105",
+        "gap-2 transition-all duration-200 hover:scale-105 relative overflow-hidden",
+        loading && "animate-pulse",
         className
       )}
       style={{
@@ -39,8 +42,13 @@ export const NodeActionButton: React.FC<NodeActionButtonProps> = ({
         color: color
       }}
     >
-      <Icon className="h-4 w-4" />
-      {label}
+      <Icon className={cn("h-4 w-4", loading && "animate-spin")} />
+      {loading ? 'Loading...' : label}
+      
+      {/* Shimmer effect for loading */}
+      {loading && (
+        <div className="absolute inset-0 -translate-x-full animate-[shimmer_2s_infinite] bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+      )}
     </Button>
   );
 };

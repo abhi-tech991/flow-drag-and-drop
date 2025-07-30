@@ -18,8 +18,10 @@ const EnhancedVisualizationNode: React.FC<EnhancedVisualizationNodeProps> = ({
 }) => {
   const visualizationColor = 'hsl(var(--workflow-analyze))';
 
-  const handleViewDashboard = () => {
-    console.log('View dashboard:', data);
+  const handleConfigure = () => {
+    if (data.onConfigure) {
+      data.onConfigure();
+    }
   };
 
   return (
@@ -49,12 +51,13 @@ const EnhancedVisualizationNode: React.FC<EnhancedVisualizationNodeProps> = ({
         <NodeStatusIndicator 
           status={data.status || 'idle'} 
           message={data.status === 'processing' ? 'Generating charts...' : undefined}
+          progress={data.status === 'processing' ? data.progress : undefined}
         />
         
         <NodeActionButton
           icon={Eye}
-          label="View"
-          onClick={handleViewDashboard}
+          label="Configure"
+          onClick={handleConfigure}
           color={visualizationColor}
           variant="ghost"
         />

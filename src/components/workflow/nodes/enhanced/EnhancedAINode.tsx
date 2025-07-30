@@ -19,7 +19,9 @@ const EnhancedAINode: React.FC<EnhancedAINodeProps> = ({
   const aiColor = 'hsl(var(--workflow-ai))';
 
   const handleTrainModel = () => {
-    console.log('Train AI model:', data);
+    if (data.onConfigure) {
+      data.onConfigure();
+    }
   };
 
   return (

@@ -7,6 +7,9 @@ export interface WorkflowNodeData extends Record<string, unknown> {
   icon?: string;
   status?: 'idle' | 'processing' | 'completed' | 'error';
   config?: Record<string, any>;
+  onConfigure?: () => void;
+  progress?: number;
+  errorMessage?: string;
 }
 
 export interface WorkflowNodeType {

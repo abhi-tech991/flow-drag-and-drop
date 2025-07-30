@@ -19,8 +19,9 @@ const EnhancedProcessNode: React.FC<EnhancedProcessNodeProps> = ({
   const processColor = 'hsl(var(--workflow-process))';
 
   const handleConfigure = () => {
-    // Open configuration modal
-    console.log('Configure process node:', data);
+    if (data.onConfigure) {
+      data.onConfigure();
+    }
   };
 
   return (

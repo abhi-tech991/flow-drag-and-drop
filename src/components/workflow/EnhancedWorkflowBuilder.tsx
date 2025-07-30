@@ -20,6 +20,8 @@ import EnhancedAINode from './nodes/enhanced/EnhancedAINode';
 import EnhancedFilterNode from './nodes/enhanced/EnhancedFilterNode';
 import EnhancedVisualizationNode from './nodes/enhanced/EnhancedVisualizationNode';
 import { EnhancedWorkflowToolbar } from './EnhancedWorkflowToolbar';
+import { NodeConfigModal } from './modals/NodeConfigModal';
+import { useWorkflowState } from './hooks/useWorkflowState';
 import { toast } from 'sonner';
 import { WorkflowNodeData } from '@/types/workflow';
 
@@ -35,6 +37,16 @@ const EnhancedWorkflowBuilder = () => {
   const [nodes, setNodes, onNodesChange] = useNodesState(enhancedInitialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(enhancedInitialEdges);
   const [isRunning, setIsRunning] = useState(false);
+  const [configModalOpen, setConfigModalOpen] = useState(false);
+  const [selectedNode, setSelectedNode] = useState<Node | null>(null);
+  
+  const { 
+    currentWorkflow, 
+    updateWorkflow, 
+    saveWorkflow, 
+    validateWorkflow, 
+    exportWorkflow 
+  } = useWorkflowState();
 
   const onConnect = useCallback(
     (params: Connection) => {
@@ -48,6 +60,14 @@ const EnhancedWorkflowBuilder = () => {
     },
     [setEdges],
   );
+
+  const openNodeConfiguration = useCallback((nodeId: string) => {
+    const node = nodes.find(n => n.id === nodeId);
+    if (node) {
+      setSelectedNode(node);
+      setConfigModalOpen(true);
+    }
+  }, [nodes]);
 
   const onAddNode = useCallback((nodeType: string) => {
     const nodeTypeMap = {
@@ -71,12 +91,19 @@ const EnhancedWorkflowBuilder = () => {
         label: getNodeLabel(nodeType),
         description: getNodeDescription(nodeType),
         status: 'idle',
+        config: {},
+        onConfigure: () => openNodeConfiguration(`${nodeType}-${Date.now()}`),
       },
     };
 
-    setNodes((nds) => nds.concat(newNode));
+    setNodes((nds) => {
+      const updatedNodes = nds.concat(newNode);
+      // Update workflow state
+      updateWorkflow({ nodes: updatedNodes, edges });
+      return updatedNodes;
+    });
     toast.success(`Added ${getNodeLabel(nodeType)} node`);
-  }, [setNodes]);
+  }, [setNodes, edges, updateWorkflow, openNodeConfiguration]);
 
   const getNodeLabel = (type: string): string => {
     const labels: Record<string, string> = {
@@ -101,44 +128,93 @@ const EnhancedWorkflowBuilder = () => {
   };
 
   const onRunWorkflow = useCallback(async () => {
-    setIsRunning(true);
-    toast.success('Starting workflow execution...');
-
-    // Simulate workflow execution
-    const nodeIds = nodes.map(n => n.id);
-    
-    for (let i = 0; i < nodeIds.length; i++) {
-      const nodeId = nodeIds[i];
-      
-      // Set node to processing
-      setNodes((prevNodes) =>
-        prevNodes.map((node) =>
-          node.id === nodeId
-            ? { ...node, data: { ...node.data, status: 'processing' } }
-            : node
-        )
-      );
-
-      // Simulate processing time
-      await new Promise(resolve => setTimeout(resolve, 1500));
-
-      // Set node to completed
-      setNodes((prevNodes) =>
-        prevNodes.map((node) =>
-          node.id === nodeId
-            ? { ...node, data: { ...node.data, status: 'completed' } }
-            : node
-        )
-      );
-
-      if (i < nodeIds.length - 1) {
-        toast.info(`Completed step ${i + 1} of ${nodeIds.length}`);
-      }
+    // Validate workflow before running
+    const validation = validateWorkflow(nodes, edges);
+    if (!validation.isValid) {
+      toast.error(`Cannot run workflow: ${validation.errors.join(', ')}`);
+      return;
     }
 
-    setIsRunning(false);
-    toast.success('Workflow completed successfully!');
-  }, [nodes, setNodes]);
+    setIsRunning(true);
+    updateWorkflow({ status: 'running' });
+    toast.success('Starting workflow execution...');
+
+    try {
+      // Simulate workflow execution with proper error handling
+      const nodeIds = nodes.map(n => n.id);
+      
+      for (let i = 0; i < nodeIds.length; i++) {
+        const nodeId = nodeIds[i];
+        
+        // Set node to processing with progress
+        setNodes((prevNodes) =>
+          prevNodes.map((node) =>
+            node.id === nodeId
+              ? { 
+                  ...node, 
+                  data: { 
+                    ...node.data, 
+                    status: 'processing',
+                    progress: 0
+                  } 
+                }
+              : node
+          )
+        );
+
+        // Simulate processing with progress updates
+        for (let progress = 0; progress <= 100; progress += 20) {
+          setNodes((prevNodes) =>
+            prevNodes.map((node) =>
+              node.id === nodeId
+                ? { 
+                    ...node, 
+                    data: { 
+                      ...node.data, 
+                      progress 
+                    } 
+                  }
+                : node
+            )
+          );
+          await new Promise(resolve => setTimeout(resolve, 300));
+        }
+
+        // Set node to completed
+        setNodes((prevNodes) =>
+          prevNodes.map((node) =>
+            node.id === nodeId
+              ? { 
+                  ...node, 
+                  data: { 
+                    ...node.data, 
+                    status: 'completed',
+                    progress: 100
+                  } 
+                }
+              : node
+          )
+        );
+
+        if (i < nodeIds.length - 1) {
+          toast.info(`Completed step ${i + 1} of ${nodeIds.length}`);
+        }
+      }
+
+      setIsRunning(false);
+      updateWorkflow({ status: 'completed' });
+      toast.success('Workflow completed successfully!');
+      
+      // Auto-save after successful run
+      await saveWorkflow();
+      
+    } catch (error) {
+      setIsRunning(false);
+      updateWorkflow({ status: 'error' });
+      toast.error('Workflow execution failed');
+      console.error('Workflow execution error:', error);
+    }
+  }, [nodes, edges, setNodes, validateWorkflow, updateWorkflow, saveWorkflow]);
 
   const onClearWorkflow = useCallback(() => {
     setNodes([]);
@@ -146,25 +222,37 @@ const EnhancedWorkflowBuilder = () => {
     toast.success('Workflow cleared');
   }, [setNodes, setEdges]);
 
-  const onSaveWorkflow = useCallback(() => {
-    const workflow = { nodes, edges };
-    localStorage.setItem('workflow', JSON.stringify(workflow));
-    toast.success('Workflow saved locally');
-  }, [nodes, edges]);
+  const onSaveWorkflow = useCallback(async () => {
+    updateWorkflow({ nodes, edges });
+    await saveWorkflow();
+  }, [nodes, edges, updateWorkflow, saveWorkflow]);
 
   const onExportWorkflow = useCallback(() => {
-    const workflow = { nodes, edges };
-    const dataStr = JSON.stringify(workflow, null, 2);
-    const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-    
-    const exportFileDefaultName = 'inventory-workflow.json';
-    const linkElement = document.createElement('a');
-    linkElement.setAttribute('href', dataUri);
-    linkElement.setAttribute('download', exportFileDefaultName);
-    linkElement.click();
-    
-    toast.success('Workflow exported');
-  }, [nodes, edges]);
+    updateWorkflow({ nodes, edges });
+    exportWorkflow();
+  }, [nodes, edges, updateWorkflow, exportWorkflow]);
+
+  const handleNodeConfigSave = useCallback((config: any) => {
+    if (!selectedNode) return;
+
+    setNodes((prevNodes) =>
+      prevNodes.map((node) =>
+        node.id === selectedNode.id
+          ? {
+              ...node,
+              data: {
+                ...node.data,
+                config,
+                label: config.stepName || node.data.label,
+                description: config.description || node.data.description,
+              },
+            }
+          : node
+      )
+    );
+
+    toast.success('Configuration saved successfully');
+  }, [selectedNode, setNodes]);
 
   return (
     <div className="h-screen w-full flex flex-col bg-background">
@@ -212,6 +300,20 @@ const EnhancedWorkflowBuilder = () => {
           />
         </ReactFlow>
       </div>
+      
+      {/* Configuration Modal */}
+      {selectedNode && (
+        <NodeConfigModal
+          isOpen={configModalOpen}
+          onClose={() => {
+            setConfigModalOpen(false);
+            setSelectedNode(null);
+          }}
+          onSave={handleNodeConfigSave}
+          nodeData={selectedNode.data as WorkflowNodeData}
+          nodeType={selectedNode.type || ''}
+        />
+      )}
     </div>
   );
 };

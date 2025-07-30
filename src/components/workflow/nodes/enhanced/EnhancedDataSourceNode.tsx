@@ -1,9 +1,10 @@
 import React, { memo } from 'react';
 import { Position } from '@xyflow/react';
-import { Database, FileSpreadsheet } from 'lucide-react';
+import { Database, FileSpreadsheet, Settings } from 'lucide-react';
 import { NodeCard } from '../../shared/NodeCard';
 import { NodeHandle } from '../../shared/NodeHandle';
 import { NodeStatusIndicator } from '../../shared/NodeStatusIndicator';
+import { NodeActionButton } from '../../shared/NodeActionButton';
 import { WorkflowNodeData } from '@/types/workflow';
 
 interface EnhancedDataSourceNodeProps {
@@ -47,6 +48,12 @@ const EnhancedDataSourceNode: React.FC<EnhancedDataSourceNodeProps> = ({
 
   const sourceConfig = getSourceConfig(data.source || '');
 
+  const handleConfigure = () => {
+    if (data.onConfigure) {
+      data.onConfigure();
+    }
+  };
+
   return (
     <NodeCard
       title={data.label}
@@ -60,10 +67,19 @@ const EnhancedDataSourceNode: React.FC<EnhancedDataSourceNodeProps> = ({
       className={selected ? 'ring-2 ring-primary' : ''}
       glowColor={sourceConfig.color}
     >
-      <div className="mt-2">
+      <div className="space-y-2">
         <NodeStatusIndicator 
           status={data.status || 'idle'} 
           message={data.status === 'processing' ? 'Fetching data...' : undefined}
+          progress={data.status === 'processing' ? data.progress : undefined}
+        />
+        
+        <NodeActionButton
+          icon={Settings}
+          label="Configure"
+          onClick={handleConfigure}
+          color={sourceConfig.color}
+          variant="ghost"
         />
       </div>
       
