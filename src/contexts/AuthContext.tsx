@@ -14,6 +14,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   register: (userData: RegisterData) => Promise<void>;
   loginWithGoogle: () => Promise<void>;
+  loginAsGuest: () => void;
   logout: () => void;
 }
 
@@ -123,6 +124,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const loginAsGuest = () => {
+    const guestUser: User = {
+      id: 'guest',
+      email: 'guest@example.com',
+      name: 'Guest User',
+      company: 'Guest Session'
+    };
+    
+    setUser(guestUser);
+    localStorage.setItem('user', JSON.stringify(guestUser));
+  };
+
   const logout = () => {
     setUser(null);
     localStorage.removeItem('user');
@@ -135,6 +148,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     login,
     register,
     loginWithGoogle,
+    loginAsGuest,
     logout,
   };
 

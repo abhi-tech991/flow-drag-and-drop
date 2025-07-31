@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import { Mail, Lock, User, Building2 } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface AuthLayoutProps {
   onAuthSuccess: () => void;
@@ -13,6 +14,7 @@ interface AuthLayoutProps {
 
 const AuthLayout: React.FC<AuthLayoutProps> = ({ onAuthSuccess }) => {
   const [isLoading, setIsLoading] = useState(false);
+  const { loginAsGuest } = useAuth();
 
   const handleAuth = async (type: 'login' | 'register' | 'google') => {
     setIsLoading(true);
@@ -198,8 +200,20 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({ onAuthSuccess }) => {
           </CardContent>
         </Card>
 
-        <div className="text-center text-xs text-muted-foreground">
-          Need help? <button className="text-primary hover:underline">Contact Support</button>
+        <div className="text-center space-y-3">
+          <Button
+            variant="ghost"
+            className="w-full"
+            onClick={() => {
+              loginAsGuest();
+              onAuthSuccess();
+            }}
+          >
+            Continue as Guest
+          </Button>
+          <div className="text-xs text-muted-foreground">
+            Need help? <button className="text-primary hover:underline">Contact Support</button>
+          </div>
         </div>
       </div>
     </div>
