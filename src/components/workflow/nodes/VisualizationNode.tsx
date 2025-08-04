@@ -1,54 +1,75 @@
 import React, { memo } from 'react';
-import { Handle, Position } from '@xyflow/react';
-import { Card } from '@/components/ui/card';
-import { BarChart3, TrendingUp } from 'lucide-react';
+import { Position } from '@xyflow/react';
+import { BarChart3, Eye } from 'lucide-react';
+import { NodeCard } from '../shared/NodeCard';
+import { NodeHandle } from '../shared/NodeHandle';
+import { NodeStatusIndicator } from '../shared/NodeStatusIndicator';
+import { NodeActionButton } from '../shared/NodeActionButton';
+import { WorkflowNodeData } from '@/types/workflow';
 
 interface VisualizationNodeProps {
-  data: {
-    label: string;
-    description?: string;
-  };
+  data: WorkflowNodeData;
+  selected?: boolean;
 }
 
-const VisualizationNode: React.FC<VisualizationNodeProps> = ({ data }) => {
+const VisualizationNode: React.FC<VisualizationNodeProps> = ({ 
+  data, 
+  selected 
+}) => {
+  const vizColor = 'hsl(var(--workflow-analyze))';
+
+  const handleConfigure = () => {
+    if (data.onConfigure) {
+      data.onConfigure();
+    }
+  };
+
   return (
-    <Card className="min-w-[280px] p-4 shadow-lg border-2 border-workflow-analyze/20 bg-card">
-      <div className="flex items-start gap-3">
-        <div className="flex-shrink-0">
-          <div className="w-12 h-12 rounded-lg bg-workflow-analyze/10 flex items-center justify-center relative">
-            <BarChart3 className="h-6 w-6 text-workflow-analyze" />
-            <TrendingUp className="h-3 w-3 text-workflow-analyze absolute -top-1 -right-1" />
-          </div>
+    <NodeCard
+      title={data.label}
+      description={data.description}
+      status={data.status}
+      icon={<BarChart3 className="h-6 w-6 text-workflow-analyze" />}
+      className={selected ? 'ring-2 ring-primary' : ''}
+      glowColor={vizColor}
+    >
+      <div className="space-y-2">
+        {/* Mini Chart */}
+        <div className="flex items-end space-x-1 h-8 mt-2">
+          {[3, 7, 4, 8, 5, 6, 7].map((height, index) => (
+            <div
+              key={index}
+              className="bg-workflow-analyze rounded-sm animate-pulse"
+              style={{
+                width: '4px',
+                height: `${height * 3}px`,
+                animationDelay: `${index * 100}ms`
+              }}
+            />
+          ))}
         </div>
         
-        <div className="flex-1">
-          <h3 className="font-semibold text-card-foreground text-sm leading-tight mb-1">
-            {data.label}
-          </h3>
-          
-          {data.description && (
-            <p className="text-xs text-muted-foreground">
-              {data.description}
-            </p>
-          )}
-          
-          {/* Mini chart visualization */}
-          <div className="mt-2 h-8 flex items-end gap-1">
-            <div className="w-2 bg-workflow-analyze/30 rounded-sm" style={{ height: '60%' }}></div>
-            <div className="w-2 bg-workflow-analyze/50 rounded-sm" style={{ height: '80%' }}></div>
-            <div className="w-2 bg-workflow-analyze/70 rounded-sm" style={{ height: '40%' }}></div>
-            <div className="w-2 bg-workflow-analyze rounded-sm" style={{ height: '100%' }}></div>
-            <div className="w-2 bg-workflow-analyze/60 rounded-sm" style={{ height: '70%' }}></div>
-          </div>
-        </div>
+        <NodeStatusIndicator 
+          status={data.status || 'idle'} 
+          message={data.status === 'processing' ? 'Generating charts...' : undefined}
+          progress={data.status === 'processing' ? 85 : undefined}
+        />
+        
+        <NodeActionButton
+          icon={Eye}
+          label="View"
+          onClick={handleConfigure}
+          color={vizColor}
+          variant="ghost"
+        />
       </div>
       
-      <Handle
+      <NodeHandle
         type="target"
         position={Position.Left}
-        className="w-3 h-3 border-2 border-workflow-analyze bg-workflow-analyze"
+        color={vizColor}
       />
-    </Card>
+    </NodeCard>
   );
 };
 

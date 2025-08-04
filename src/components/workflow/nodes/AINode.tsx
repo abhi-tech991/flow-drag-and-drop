@@ -1,60 +1,71 @@
 import React, { memo } from 'react';
-import { Handle, Position } from '@xyflow/react';
-import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Position } from '@xyflow/react';
 import { Brain, Sparkles } from 'lucide-react';
+import { NodeCard } from '../shared/NodeCard';
+import { NodeHandle } from '../shared/NodeHandle';
+import { NodeStatusIndicator } from '../shared/NodeStatusIndicator';
+import { NodeActionButton } from '../shared/NodeActionButton';
+import { Badge } from '@/components/ui/badge';
+import { WorkflowNodeData } from '@/types/workflow';
 
 interface AINodeProps {
-  data: {
-    label: string;
-    description?: string;
-  };
+  data: WorkflowNodeData;
+  selected?: boolean;
 }
 
-const AINode: React.FC<AINodeProps> = ({ data }) => {
+const AINode: React.FC<AINodeProps> = ({ 
+  data, 
+  selected 
+}) => {
+  const aiColor = 'hsl(var(--workflow-ai))';
+
+  const handleTrainModel = () => {
+    if (data.onConfigure) {
+      data.onConfigure();
+    }
+  };
+
   return (
-    <Card className="min-w-[280px] p-4 shadow-lg border-2 border-workflow-ai/20 bg-card relative overflow-hidden">
-      {/* AI Gradient Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-workflow-ai/5 to-transparent pointer-events-none" />
-      
-      <div className="relative flex items-start gap-3">
-        <div className="flex-shrink-0">
-          <div className="w-12 h-12 rounded-lg bg-workflow-ai/10 flex items-center justify-center relative">
-            <Brain className="h-6 w-6 text-workflow-ai" />
-            <Sparkles className="h-3 w-3 text-workflow-ai absolute -top-1 -right-1" />
-          </div>
-        </div>
+    <NodeCard
+      title={data.label}
+      description={data.description}
+      status={data.status}
+      icon={<Brain className="h-6 w-6 text-workflow-ai" />}
+      className={selected ? 'ring-2 ring-primary' : ''}
+      glowColor={aiColor}
+      badge={{
+        text: 'AI',
+        variant: 'secondary',
+        color: aiColor
+      }}
+    >
+      <div className="space-y-2">
+        <NodeStatusIndicator 
+          status={data.status || 'idle'} 
+          message={data.status === 'processing' ? 'Training model...' : undefined}
+          progress={data.status === 'processing' ? 75 : undefined}
+        />
         
-        <div className="flex-1">
-          <div className="flex items-center gap-2 mb-2">
-            <Badge className="bg-workflow-ai text-white">
-              AI/ML
-            </Badge>
-          </div>
-          
-          <h3 className="font-semibold text-card-foreground text-sm leading-tight mb-1">
-            {data.label}
-          </h3>
-          
-          {data.description && (
-            <p className="text-xs text-muted-foreground">
-              {data.description}
-            </p>
-          )}
-        </div>
+        <NodeActionButton
+          icon={Sparkles}
+          label="Train"
+          onClick={handleTrainModel}
+          color={aiColor}
+          variant="ghost"
+        />
       </div>
       
-      <Handle
+      <NodeHandle
         type="target"
         position={Position.Left}
-        className="w-3 h-3 border-2 border-workflow-ai bg-workflow-ai"
+        color={aiColor}
       />
-      <Handle
+      <NodeHandle
         type="source"
         position={Position.Right}
-        className="w-3 h-3 border-2 border-workflow-ai bg-workflow-ai"
+        color={aiColor}
       />
-    </Card>
+    </NodeCard>
   );
 };
 

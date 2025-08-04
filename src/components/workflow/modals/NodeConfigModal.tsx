@@ -49,7 +49,7 @@ export const NodeConfigModal: React.FC<NodeConfigModalProps> = ({
 
   const renderConfigFields = () => {
     switch (nodeType) {
-      case 'enhancedDataSource':
+      case 'dataSource':
         return (
           <div className="space-y-4">
             <div>
@@ -103,7 +103,7 @@ export const NodeConfigModal: React.FC<NodeConfigModalProps> = ({
           </div>
         );
 
-      case 'enhancedProcess':
+      case 'process':
         return (
           <div className="space-y-4">
             <div>
@@ -137,7 +137,7 @@ export const NodeConfigModal: React.FC<NodeConfigModalProps> = ({
           </div>
         );
 
-      case 'enhancedAI':
+      case 'ai':
         return (
           <div className="space-y-4">
             <div>
@@ -182,7 +182,7 @@ export const NodeConfigModal: React.FC<NodeConfigModalProps> = ({
           </div>
         );
 
-      case 'enhancedFilter':
+      case 'filter':
         return (
           <div className="space-y-4">
             <div>
@@ -211,7 +211,7 @@ export const NodeConfigModal: React.FC<NodeConfigModalProps> = ({
           </div>
         );
 
-      case 'enhancedVisualization':
+      case 'visualization':
         return (
           <div className="space-y-4">
             <div>

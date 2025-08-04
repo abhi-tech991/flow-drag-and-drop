@@ -1,49 +1,65 @@
 import React, { memo } from 'react';
-import { Handle, Position } from '@xyflow/react';
-import { Card } from '@/components/ui/card';
-import { Filter } from 'lucide-react';
+import { Position } from '@xyflow/react';
+import { Filter, Sliders } from 'lucide-react';
+import { NodeCard } from '../shared/NodeCard';
+import { NodeHandle } from '../shared/NodeHandle';
+import { NodeStatusIndicator } from '../shared/NodeStatusIndicator';
+import { NodeActionButton } from '../shared/NodeActionButton';
+import { WorkflowNodeData } from '@/types/workflow';
 
 interface FilterNodeProps {
-  data: {
-    label: string;
-    description?: string;
-  };
+  data: WorkflowNodeData;
+  selected?: boolean;
 }
 
-const FilterNode: React.FC<FilterNodeProps> = ({ data }) => {
+const FilterNode: React.FC<FilterNodeProps> = ({ 
+  data, 
+  selected 
+}) => {
+  const filterColor = 'hsl(var(--workflow-filter))';
+
+  const handleConfigureFilters = () => {
+    if (data.onConfigure) {
+      data.onConfigure();
+    }
+  };
+
   return (
-    <Card className="min-w-[280px] p-4 shadow-lg border-2 border-workflow-filter/20 bg-card">
-      <div className="flex items-start gap-3">
-        <div className="flex-shrink-0">
-          <div className="w-12 h-12 rounded-lg bg-workflow-filter/10 flex items-center justify-center">
-            <Filter className="h-6 w-6 text-workflow-filter" />
-          </div>
-        </div>
+    <NodeCard
+      title={data.label}
+      description={data.description}
+      status={data.status}
+      icon={<Filter className="h-6 w-6 text-workflow-filter" />}
+      className={selected ? 'ring-2 ring-primary' : ''}
+      glowColor={filterColor}
+    >
+      <div className="space-y-2">
+        <NodeStatusIndicator 
+          status={data.status || 'idle'} 
+          message={data.status === 'processing' ? 'Filtering data...' : undefined}
+          progress={data.status === 'processing' ? 45 : undefined}
+        />
         
-        <div className="flex-1">
-          <h3 className="font-semibold text-card-foreground text-sm leading-tight mb-1">
-            {data.label}
-          </h3>
-          
-          {data.description && (
-            <p className="text-xs text-muted-foreground">
-              {data.description}
-            </p>
-          )}
-        </div>
+        <NodeActionButton
+          icon={Sliders}
+          label="Filters"
+          onClick={handleConfigureFilters}
+          color={filterColor}
+          variant="ghost"
+        />
       </div>
       
-      <Handle
+      <NodeHandle
         type="target"
         position={Position.Left}
-        className="w-3 h-3 border-2 border-workflow-filter bg-workflow-filter"
+        color={filterColor}
       />
-      <Handle
+      <NodeHandle
         type="source"
         position={Position.Right}
-        className="w-3 h-3 border-2 border-workflow-filter bg-workflow-filter"
+        color={filterColor}
       />
-    </Card>
+    </NodeCard>
   );
 };
 

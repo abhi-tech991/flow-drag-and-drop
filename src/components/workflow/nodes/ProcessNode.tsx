@@ -1,49 +1,65 @@
 import React, { memo } from 'react';
-import { Handle, Position } from '@xyflow/react';
-import { Card } from '@/components/ui/card';
-import { Zap } from 'lucide-react';
+import { Position } from '@xyflow/react';
+import { Zap, Settings } from 'lucide-react';
+import { NodeCard } from '../shared/NodeCard';
+import { NodeHandle } from '../shared/NodeHandle';
+import { NodeStatusIndicator } from '../shared/NodeStatusIndicator';
+import { NodeActionButton } from '../shared/NodeActionButton';
+import { WorkflowNodeData } from '@/types/workflow';
 
 interface ProcessNodeProps {
-  data: {
-    label: string;
-    description?: string;
-  };
+  data: WorkflowNodeData;
+  selected?: boolean;
 }
 
-const ProcessNode: React.FC<ProcessNodeProps> = ({ data }) => {
+const ProcessNode: React.FC<ProcessNodeProps> = ({ 
+  data, 
+  selected 
+}) => {
+  const processColor = 'hsl(var(--workflow-process))';
+
+  const handleConfigure = () => {
+    if (data.onConfigure) {
+      data.onConfigure();
+    }
+  };
+
   return (
-    <Card className="min-w-[280px] p-4 shadow-lg border-2 border-workflow-process/20 bg-card">
-      <div className="flex items-start gap-3">
-        <div className="flex-shrink-0">
-          <div className="w-12 h-12 rounded-lg bg-workflow-process/10 flex items-center justify-center">
-            <Zap className="h-6 w-6 text-workflow-process" />
-          </div>
-        </div>
+    <NodeCard
+      title={data.label}
+      description={data.description}
+      status={data.status}
+      icon={<Zap className="h-6 w-6 text-workflow-process" />}
+      className={selected ? 'ring-2 ring-primary' : ''}
+      glowColor={processColor}
+    >
+      <div className="space-y-2">
+        <NodeStatusIndicator 
+          status={data.status || 'idle'} 
+          message={data.status === 'processing' ? 'Processing data...' : undefined}
+          progress={data.status === 'processing' ? 65 : undefined}
+        />
         
-        <div className="flex-1">
-          <h3 className="font-semibold text-card-foreground text-sm leading-tight mb-1">
-            {data.label}
-          </h3>
-          
-          {data.description && (
-            <p className="text-xs text-muted-foreground">
-              {data.description}
-            </p>
-          )}
-        </div>
+        <NodeActionButton
+          icon={Settings}
+          label="Configure"
+          onClick={handleConfigure}
+          color={processColor}
+          variant="ghost"
+        />
       </div>
       
-      <Handle
+      <NodeHandle
         type="target"
         position={Position.Left}
-        className="w-3 h-3 border-2 border-workflow-process bg-workflow-process"
+        color={processColor}
       />
-      <Handle
+      <NodeHandle
         type="source"
         position={Position.Right}
-        className="w-3 h-3 border-2 border-workflow-process bg-workflow-process"
+        color={processColor}
       />
-    </Card>
+    </NodeCard>
   );
 };
 
