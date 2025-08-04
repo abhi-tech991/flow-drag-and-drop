@@ -21,11 +21,16 @@ import ProcessNode from './nodes/ProcessNode';
 import AINode from './nodes/AINode';
 import FilterNode from './nodes/FilterNode';
 import VisualizationNode from './nodes/VisualizationNode';
+import ConditionalNode from './nodes/ConditionalNode';
+import SwitchNode from './nodes/SwitchNode';
 import { WorkflowToolbar } from './WorkflowToolbar';
+import { WorkflowSidebar } from './WorkflowSidebar';
 import { NodeConfigModal } from './modals/NodeConfigModal';
 import { useWorkflowState } from './hooks/useWorkflowState';
 import { toast } from 'sonner';
 import { WorkflowNodeData } from '@/types/workflow';
+import { Button } from '@/components/ui/button';
+import { StopCircle } from 'lucide-react';
 
 const nodeTypes = {
   start: StartNode,
@@ -35,6 +40,8 @@ const nodeTypes = {
   ai: AINode,
   filter: FilterNode,
   visualization: VisualizationNode,
+  conditional: ConditionalNode,
+  switch: SwitchNode,
 };
 
 const WorkflowBuilder = () => {
@@ -43,6 +50,8 @@ const WorkflowBuilder = () => {
   const [isRunning, setIsRunning] = useState(false);
   const [configModalOpen, setConfigModalOpen] = useState(false);
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [shouldStop, setShouldStop] = useState(false);
   
   const { 
     currentWorkflow, 
@@ -98,7 +107,23 @@ const WorkflowBuilder = () => {
     }
   }, [nodes]);
 
-  // Initialize nodes with onConfigure callbacks
+  const onDeleteNode = useCallback((nodeId: string) => {
+    const nodeToDelete = nodes.find(n => n.id === nodeId);
+    
+    // Prevent deletion of start and end nodes
+    if (nodeToDelete?.type === 'start' || nodeToDelete?.type === 'end') {
+      toast.error('Cannot delete start or end nodes');
+      return;
+    }
+
+    // Remove the node and its connected edges
+    setNodes((nds) => nds.filter(n => n.id !== nodeId));
+    setEdges((eds) => eds.filter(e => e.source !== nodeId && e.target !== nodeId));
+    
+    toast.success('Node deleted');
+  }, [nodes, setNodes, setEdges]);
+
+  // Initialize nodes with onConfigure and onDelete callbacks
   React.useEffect(() => {
     setNodes((prevNodes) => 
       prevNodes.map((node) => ({
@@ -106,10 +131,11 @@ const WorkflowBuilder = () => {
         data: {
           ...node.data,
           onConfigure: () => openNodeConfiguration(node.id),
+          onDelete: () => onDeleteNode(node.id),
         },
       }))
     );
-  }, [openNodeConfiguration]);
+  }, [openNodeConfiguration, onDeleteNode]);
 
   const onAddNode = useCallback((nodeType: string) => {
     // Find a good position between start and end nodes
@@ -156,21 +182,6 @@ const WorkflowBuilder = () => {
     toast.success(`Added ${getNodeLabel(nodeType)} node`);
   }, [setNodes, edges, updateWorkflow, openNodeConfiguration, nodes]);
 
-  const onDeleteNode = useCallback((nodeId: string) => {
-    const nodeToDelete = nodes.find(n => n.id === nodeId);
-    
-    // Prevent deletion of start and end nodes
-    if (nodeToDelete?.type === 'start' || nodeToDelete?.type === 'end') {
-      toast.error('Cannot delete start or end nodes');
-      return;
-    }
-
-    // Remove the node and its connected edges
-    setNodes((nds) => nds.filter(n => n.id !== nodeId));
-    setEdges((eds) => eds.filter(e => e.source !== nodeId && e.target !== nodeId));
-    
-    toast.success('Node deleted');
-  }, [nodes, setNodes, setEdges]);
 
   const getNodeLabel = (type: string): string => {
     const labels: Record<string, string> = {
@@ -179,6 +190,8 @@ const WorkflowBuilder = () => {
       ai: 'AI Processing',
       filter: 'Data Filter',
       visualization: 'Data Visualization',
+      conditional: 'Conditional Logic',
+      switch: 'Switch Case',
     };
     return labels[type] || type;
   };
@@ -190,19 +203,34 @@ const WorkflowBuilder = () => {
       ai: 'Apply AI/ML algorithms',
       filter: 'Filter and refine data',
       visualization: 'Display results and charts',
+      conditional: 'Add if-else branching logic',
+      switch: 'Multi-case branching logic',
     };
     return descriptions[type] || '';
   };
 
   const onRunWorkflow = useCallback(async () => {
-    // Validate workflow before running
+    // Enhanced workflow validation
     const validation = validateWorkflow(nodes, edges);
     if (!validation.isValid) {
       toast.error(`Cannot run workflow: ${validation.errors.join(', ')}`);
       return;
     }
 
+    // Validate node configurations
+    const unconfiguredNodes = nodes.filter(node => {
+      if (node.type === 'start' || node.type === 'end') return false;
+      const data = node.data as WorkflowNodeData;
+      return !data.config || Object.keys(data.config).length === 0;
+    });
+
+    if (unconfiguredNodes.length > 0) {
+      toast.error(`Please configure all nodes before running. ${unconfiguredNodes.length} nodes need configuration.`);
+      return;
+    }
+
     setIsRunning(true);
+    setShouldStop(false);
     updateWorkflow({ status: 'running' });
     toast.success('Starting workflow execution...');
 
@@ -210,7 +238,7 @@ const WorkflowBuilder = () => {
       // Get workflow execution order by following the edge connections
       const sortedNodes = getExecutionOrder(nodes, edges);
       
-      for (let i = 0; i < sortedNodes.length; i++) {
+      for (let i = 0; i < sortedNodes.length && !shouldStop; i++) {
         const nodeId = sortedNodes[i];
         
         // Set node to processing
@@ -230,7 +258,7 @@ const WorkflowBuilder = () => {
         );
 
         // Simulate processing with progress updates
-        for (let progress = 0; progress <= 100; progress += 25) {
+        for (let progress = 0; progress <= 100 && !shouldStop; progress += 20) {
           setNodes((prevNodes) =>
             prevNodes.map((node) =>
               node.id === nodeId
@@ -244,7 +272,22 @@ const WorkflowBuilder = () => {
                 : node
             )
           );
-          await new Promise(resolve => setTimeout(resolve, 300));
+          await new Promise(resolve => setTimeout(resolve, 200));
+        }
+
+        if (shouldStop) {
+          // Set all remaining nodes to idle
+          setNodes((prevNodes) =>
+            prevNodes.map((node) => ({
+              ...node,
+              data: {
+                ...node.data,
+                status: 'idle',
+                progress: 0
+              }
+            }))
+          );
+          break;
         }
 
         // Set node to completed
@@ -269,18 +312,30 @@ const WorkflowBuilder = () => {
       }
 
       setIsRunning(false);
-      updateWorkflow({ status: 'completed' });
-      toast.success('Workflow completed successfully!');
+      setShouldStop(false);
       
-      await saveWorkflow();
+      if (!shouldStop) {
+        updateWorkflow({ status: 'completed' });
+        toast.success('Workflow completed successfully!');
+        await saveWorkflow();
+      } else {
+        updateWorkflow({ status: 'error' });
+        toast.info('Workflow stopped by user');
+      }
       
     } catch (error) {
       setIsRunning(false);
+      setShouldStop(false);
       updateWorkflow({ status: 'error' });
       toast.error('Workflow execution failed');
       console.error('Workflow execution error:', error);
     }
-  }, [nodes, edges, setNodes, validateWorkflow, updateWorkflow, saveWorkflow]);
+  }, [nodes, edges, setNodes, validateWorkflow, updateWorkflow, saveWorkflow, shouldStop]);
+
+  const onStopWorkflow = useCallback(() => {
+    setShouldStop(true);
+    toast.info('Stopping workflow...');
+  }, []);
 
   const getExecutionOrder = (nodes: Node[], edges: Edge[]): string[] => {
     // Simple topological sort for linear workflow
@@ -360,16 +415,38 @@ const WorkflowBuilder = () => {
 
   return (
     <div className="h-screen w-full flex flex-col bg-background">
+      <WorkflowSidebar
+        onAddNode={onAddNode}
+        isOpen={sidebarOpen}
+        onToggle={() => setSidebarOpen(!sidebarOpen)}
+      />
+      
       <WorkflowToolbar 
         onAddNode={onAddNode}
         onClearWorkflow={onClearWorkflow}
         onRunWorkflow={onRunWorkflow}
+        onStopWorkflow={onStopWorkflow}
         onSaveWorkflow={onSaveWorkflow}
         onExportWorkflow={onExportWorkflow}
         isRunning={isRunning}
       />
       
-      <div className="flex-1 bg-gradient-workflow">
+      <div className="flex-1 bg-gradient-workflow relative">
+        {/* Stop Button Overlay */}
+        {isRunning && (
+          <div className="absolute top-4 right-4 z-10">
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={onStopWorkflow}
+              className="gap-2 shadow-lg"
+            >
+              <StopCircle className="h-4 w-4" />
+              Stop Workflow
+            </Button>
+          </div>
+        )}
+        
         <ReactFlow
           nodes={nodes}
           edges={edges}
@@ -377,6 +454,10 @@ const WorkflowBuilder = () => {
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
           onNodesDelete={onNodesDelete}
+          onEdgesDelete={(edgesToDelete) => {
+            setEdges((eds) => eds.filter(edge => !edgesToDelete.find(e => e.id === edge.id)));
+            toast.success('Edge deleted');
+          }}
           nodeTypes={nodeTypes}
           fitView
           attributionPosition="bottom-left"
@@ -406,6 +487,8 @@ const WorkflowBuilder = () => {
                 case 'ai': return 'hsl(var(--workflow-ai))';
                 case 'filter': return 'hsl(var(--workflow-filter))';
                 case 'visualization': return 'hsl(var(--workflow-analyze))';
+                case 'conditional': return 'hsl(var(--primary))';
+                case 'switch': return 'hsl(var(--secondary))';
                 default: return 'hsl(var(--primary))';
               }
             }}

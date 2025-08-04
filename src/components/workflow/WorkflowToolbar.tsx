@@ -20,6 +20,7 @@ interface WorkflowToolbarProps {
   onAddNode: (nodeType: string) => void;
   onClearWorkflow: () => void;
   onRunWorkflow: () => void;
+  onStopWorkflow: () => void;
   onSaveWorkflow: () => void;
   onExportWorkflow: () => void;
   isRunning: boolean;
@@ -29,6 +30,7 @@ export const WorkflowToolbar: React.FC<WorkflowToolbarProps> = ({
   onAddNode,
   onClearWorkflow,
   onRunWorkflow,
+  onStopWorkflow,
   onSaveWorkflow,
   onExportWorkflow,
   isRunning

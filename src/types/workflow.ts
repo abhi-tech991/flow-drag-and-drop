@@ -18,7 +18,7 @@ export interface WorkflowNodeType {
   icon: LucideIcon;
   description: string;
   color: string;
-  category: 'source' | 'transform' | 'ai' | 'filter' | 'output';
+  category: 'source' | 'transform' | 'ai' | 'filter' | 'output' | 'control';
 }
 
 export interface ConnectionValidation {
