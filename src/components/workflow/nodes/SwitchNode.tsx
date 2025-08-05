@@ -25,81 +25,76 @@ const SwitchNode: React.FC<SwitchNodeProps> = ({ id, data }) => {
   const maxOutputs = Math.max(3, data.subnodes?.length || 0);
 
   return (
-    <NodeCard>
+    <NodeCard
+      title={data.label}
+      description={data.description}
+      status={data.status}
+      icon={<Split className="h-6 w-6 text-purple-600" />}
+    >
       <Handle 
         type="target" 
         position={Position.Left} 
-        className="w-3 h-3 bg-primary border-2 border-background"
+        className="w-4 h-4 bg-purple-500 border-2 border-white shadow-lg"
       />
       
-      <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center gap-2">
-          <div className="p-1.5 rounded bg-secondary/10">
-            <Split className="h-4 w-4 text-secondary" />
+      <div className="mt-3">
+        <NodeStatusIndicator status={data.status} progress={data.progress} />
+
+        {/* Progress Bar */}
+        {data.status === 'processing' && data.progress !== undefined && (
+          <div className="mb-3">
+            <Progress value={data.progress} className="h-1" />
+            <span className="text-xs text-muted-foreground">{data.progress}%</span>
           </div>
-          <span className="font-medium text-sm">{data.label}</span>
+        )}
+
+        {/* Subnodes Display */}
+        {hasSubnodes && (
+          <div className="mb-3 p-2 bg-muted/50 rounded text-xs">
+            <div className="font-medium mb-1">Cases:</div>
+            {data.subnodes?.map((subnode, index) => (
+              <div key={subnode.id} className="flex justify-between text-xs">
+                <span>{subnode.case}</span>
+                <span className="text-muted-foreground">{subnode.label}</span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Configuration Display */}
+        {data.config && Object.keys(data.config).length > 0 && (
+          <div className="mb-3 p-2 bg-muted/50 rounded text-xs">
+            <div className="font-medium mb-1">Configuration:</div>
+            {Object.entries(data.config).map(([key, value]) => (
+              <div key={key} className="text-xs">
+                <span className="font-medium">{key}:</span> {String(value)}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Error Message */}
+        {data.status === 'error' && data.errorMessage && (
+          <div className="mb-3 p-2 bg-destructive/10 border border-destructive/20 rounded text-xs text-destructive">
+            {data.errorMessage}
+          </div>
+        )}
+
+        <div className="flex justify-between items-center mt-4">
+          <NodeActionButton
+            icon={Settings}
+            label="Configure"
+            onClick={data.onConfigure || (() => {})}
+            variant="outline"
+          />
+          <NodeActionButton
+            icon={Trash2}
+            label="Delete"
+            onClick={data.onDelete || (() => {})}
+            variant="outline"
+            color="#ef4444"
+          />
         </div>
-        <NodeStatusIndicator status={data.status} />
-      </div>
-
-      {data.description && (
-        <p className="text-xs text-muted-foreground mb-3">
-          {data.description}
-        </p>
-      )}
-
-      {/* Progress Bar */}
-      {data.status === 'processing' && data.progress !== undefined && (
-        <div className="mb-3">
-          <Progress value={data.progress} className="h-1" />
-          <span className="text-xs text-muted-foreground">{data.progress}%</span>
-        </div>
-      )}
-
-      {/* Subnodes Display */}
-      {hasSubnodes && (
-        <div className="mb-3 p-2 bg-muted/50 rounded text-xs">
-          <div className="font-medium mb-1">Cases:</div>
-          {data.subnodes?.map((subnode, index) => (
-            <div key={subnode.id} className="flex justify-between text-xs">
-              <span>{subnode.case}</span>
-              <span className="text-muted-foreground">{subnode.label}</span>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Configuration Display */}
-      {data.config && Object.keys(data.config).length > 0 && (
-        <div className="mb-3 p-2 bg-muted/50 rounded text-xs">
-          <div className="font-medium mb-1">Configuration:</div>
-          {Object.entries(data.config).map(([key, value]) => (
-            <div key={key} className="text-xs">
-              <span className="font-medium">{key}:</span> {String(value)}
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Error Message */}
-      {data.status === 'error' && data.errorMessage && (
-        <div className="mb-3 p-2 bg-destructive/10 border border-destructive/20 rounded text-xs text-destructive">
-          {data.errorMessage}
-        </div>
-      )}
-
-      <div className="flex justify-between items-center">
-        <NodeActionButton
-          icon={Settings}
-          onClick={data.onConfigure}
-          tooltip="Configure switch cases"
-        />
-        <NodeActionButton
-          icon={Trash2}
-          onClick={data.onDelete}
-          tooltip="Delete node"
-          variant="destructive"
-        />
       </div>
 
       {/* Multiple outputs for different cases */}
@@ -113,7 +108,7 @@ const SwitchNode: React.FC<SwitchNodeProps> = ({ id, data }) => {
             position={Position.Right}
             id={`case-${index}`}
             style={{ top: `${topPosition}%` }}
-            className={`w-3 h-3 ${colors[index % colors.length]} border-2 border-background`}
+            className={`w-4 h-4 ${colors[index % colors.length]} border-2 border-white shadow-lg`}
           />
         );
       })}

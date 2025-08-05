@@ -24,81 +24,76 @@ const ConditionalNode: React.FC<ConditionalNodeProps> = ({ id, data }) => {
   const hasSubnodes = data.subnodes && data.subnodes.length > 0;
 
   return (
-    <NodeCard>
+    <NodeCard
+      title={data.label}
+      description={data.description}
+      status={data.status}
+      icon={<GitBranch className="h-6 w-6 text-primary" />}
+    >
       <Handle 
         type="target" 
         position={Position.Left} 
-        className="w-3 h-3 bg-primary border-2 border-background"
+        className="w-4 h-4 bg-blue-500 border-2 border-white shadow-lg"
       />
       
-      <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center gap-2">
-          <div className="p-1.5 rounded bg-primary/10">
-            <GitBranch className="h-4 w-4 text-primary" />
+      <div className="mt-3">
+        <NodeStatusIndicator status={data.status} progress={data.progress} />
+
+        {/* Progress Bar */}
+        {data.status === 'processing' && data.progress !== undefined && (
+          <div className="mb-3">
+            <Progress value={data.progress} className="h-1" />
+            <span className="text-xs text-muted-foreground">{data.progress}%</span>
           </div>
-          <span className="font-medium text-sm">{data.label}</span>
+        )}
+
+        {/* Subnodes Display */}
+        {hasSubnodes && (
+          <div className="mb-3 p-2 bg-muted/50 rounded text-xs">
+            <div className="font-medium mb-1">Conditions:</div>
+            {data.subnodes?.map((subnode, index) => (
+              <div key={subnode.id} className="flex justify-between text-xs">
+                <span>{subnode.condition}</span>
+                <span className="text-muted-foreground">{subnode.label}</span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Configuration Display */}
+        {data.config && Object.keys(data.config).length > 0 && (
+          <div className="mb-3 p-2 bg-muted/50 rounded text-xs">
+            <div className="font-medium mb-1">Configuration:</div>
+            {Object.entries(data.config).map(([key, value]) => (
+              <div key={key} className="text-xs">
+                <span className="font-medium">{key}:</span> {String(value)}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Error Message */}
+        {data.status === 'error' && data.errorMessage && (
+          <div className="mb-3 p-2 bg-destructive/10 border border-destructive/20 rounded text-xs text-destructive">
+            {data.errorMessage}
+          </div>
+        )}
+
+        <div className="flex justify-between items-center mt-4">
+          <NodeActionButton
+            icon={Settings}
+            label="Configure"
+            onClick={data.onConfigure || (() => {})}
+            variant="outline"
+          />
+          <NodeActionButton
+            icon={Trash2}
+            label="Delete"
+            onClick={data.onDelete || (() => {})}
+            variant="outline"
+            color="#ef4444"
+          />
         </div>
-        <NodeStatusIndicator status={data.status} />
-      </div>
-
-      {data.description && (
-        <p className="text-xs text-muted-foreground mb-3">
-          {data.description}
-        </p>
-      )}
-
-      {/* Progress Bar */}
-      {data.status === 'processing' && data.progress !== undefined && (
-        <div className="mb-3">
-          <Progress value={data.progress} className="h-1" />
-          <span className="text-xs text-muted-foreground">{data.progress}%</span>
-        </div>
-      )}
-
-      {/* Subnodes Display */}
-      {hasSubnodes && (
-        <div className="mb-3 p-2 bg-muted/50 rounded text-xs">
-          <div className="font-medium mb-1">Conditions:</div>
-          {data.subnodes?.map((subnode, index) => (
-            <div key={subnode.id} className="flex justify-between text-xs">
-              <span>{subnode.condition}</span>
-              <span className="text-muted-foreground">{subnode.label}</span>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Configuration Display */}
-      {data.config && Object.keys(data.config).length > 0 && (
-        <div className="mb-3 p-2 bg-muted/50 rounded text-xs">
-          <div className="font-medium mb-1">Configuration:</div>
-          {Object.entries(data.config).map(([key, value]) => (
-            <div key={key} className="text-xs">
-              <span className="font-medium">{key}:</span> {String(value)}
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Error Message */}
-      {data.status === 'error' && data.errorMessage && (
-        <div className="mb-3 p-2 bg-destructive/10 border border-destructive/20 rounded text-xs text-destructive">
-          {data.errorMessage}
-        </div>
-      )}
-
-      <div className="flex justify-between items-center">
-        <NodeActionButton
-          icon={Settings}
-          onClick={data.onConfigure}
-          tooltip="Configure conditional logic"
-        />
-        <NodeActionButton
-          icon={Trash2}
-          onClick={data.onDelete}
-          tooltip="Delete node"
-          variant="destructive"
-        />
       </div>
 
       {/* Multiple outputs for different conditions */}
@@ -107,14 +102,14 @@ const ConditionalNode: React.FC<ConditionalNodeProps> = ({ id, data }) => {
         position={Position.Right}
         id="true"
         style={{ top: '40%' }}
-        className="w-3 h-3 bg-green-500 border-2 border-background"
+        className="w-4 h-4 bg-green-500 border-2 border-white shadow-lg"
       />
       <Handle 
         type="source" 
         position={Position.Right}
         id="false"
         style={{ top: '60%' }}
-        className="w-3 h-3 bg-red-500 border-2 border-background"
+        className="w-4 h-4 bg-red-500 border-2 border-white shadow-lg"
       />
     </NodeCard>
   );
