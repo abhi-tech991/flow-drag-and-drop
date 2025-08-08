@@ -13,7 +13,10 @@ import {
   X,
   Plus,
   GitBranch,
-  Split
+  Split,
+  Code,
+  Save,
+  FolderOpen
 } from 'lucide-react';
 import { WorkflowNodeType } from '@/types/workflow';
 
@@ -21,12 +24,18 @@ interface WorkflowSidebarProps {
   onAddNode: (nodeType: string) => void;
   isOpen: boolean;
   onToggle: () => void;
+  onOpenJsonBuilder?: () => void;
+  onSaveWorkflow?: () => void;
+  onLoadWorkflow?: () => void;
 }
 
 export const WorkflowSidebar: React.FC<WorkflowSidebarProps> = ({
   onAddNode,
   isOpen,
-  onToggle
+  onToggle,
+  onOpenJsonBuilder,
+  onSaveWorkflow,
+  onLoadWorkflow
 }) => {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
 
@@ -137,6 +146,45 @@ export const WorkflowSidebar: React.FC<WorkflowSidebarProps> = ({
                   {category.label}
                 </Badge>
               ))}
+            </div>
+          </div>
+
+          <Separator className="mb-6" />
+
+          {/* Workflow Actions */}
+          <div className="space-y-3 mb-6">
+            <h3 className="text-sm font-medium text-foreground">Workflow Actions</h3>
+            
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onOpenJsonBuilder}
+              className="w-full justify-start gap-2"
+            >
+              <Code className="h-4 w-4" />
+              JSON Configuration
+            </Button>
+            
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onSaveWorkflow}
+                className="flex-1 justify-start gap-2"
+              >
+                <Save className="h-4 w-4" />
+                Save
+              </Button>
+              
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onLoadWorkflow}
+                className="flex-1 justify-start gap-2"
+              >
+                <FolderOpen className="h-4 w-4" />
+                Load
+              </Button>
             </div>
           </div>
 

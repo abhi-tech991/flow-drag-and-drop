@@ -23,9 +23,12 @@ import FilterNode from './nodes/FilterNode';
 import VisualizationNode from './nodes/VisualizationNode';
 import ConditionalNode from './nodes/ConditionalNode';
 import SwitchNode from './nodes/SwitchNode';
+import CustomNodeRenderer from './CustomNodeRenderer';
 import { WorkflowToolbar } from './WorkflowToolbar';
 import { WorkflowSidebar } from './WorkflowSidebar';
 import { NodeConfigModal } from './modals/NodeConfigModal';
+import { CustomNodeConfigModal } from './modals/CustomNodeConfigModal';
+import { JsonWorkflowBuilder } from './JsonWorkflowBuilder';
 import { useWorkflowState } from './hooks/useWorkflowState';
 import { toast } from 'sonner';
 import { WorkflowNodeData } from '@/types/workflow';
@@ -42,6 +45,7 @@ const nodeTypes = {
   visualization: VisualizationNode,
   conditional: ConditionalNode,
   switch: SwitchNode,
+  // Dynamic custom node types will be added here
 };
 
 const WorkflowBuilder = () => {
@@ -52,6 +56,9 @@ const WorkflowBuilder = () => {
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [shouldStop, setShouldStop] = useState(false);
+  const [jsonBuilderOpen, setJsonBuilderOpen] = useState(false);
+  const [customNodeTypes, setCustomNodeTypes] = useState<Record<string, any>>({});
+  const [isCustomNode, setIsCustomNode] = useState(false);
   
   const { 
     currentWorkflow, 
@@ -103,9 +110,11 @@ const WorkflowBuilder = () => {
     const node = nodes.find(n => n.id === nodeId);
     if (node) {
       setSelectedNode(node);
+      // Check if it's a custom node type
+      setIsCustomNode(Object.keys(customNodeTypes).includes(node.type));
       setConfigModalOpen(true);
     }
-  }, [nodes]);
+  }, [nodes, customNodeTypes]);
 
   const onDeleteNode = useCallback((nodeId: string) => {
     const nodeToDelete = nodes.find(n => n.id === nodeId);
@@ -208,6 +217,53 @@ const WorkflowBuilder = () => {
     };
     return descriptions[type] || '';
   };
+
+  const handleJsonWorkflowConfig = useCallback((config: any) => {
+    // Add custom node types from JSON config
+    const newCustomNodeTypes: Record<string, any> = {};
+    
+    config.nodes?.forEach((nodeConfig: any) => {
+      if (!nodeTypes[nodeConfig.type as keyof typeof nodeTypes]) {
+        // Create a dynamic component for custom node types
+        newCustomNodeTypes[nodeConfig.type] = (props: any) => (
+          <CustomNodeRenderer 
+            {...props} 
+            data={{
+              ...props.data,
+              customConfig: nodeConfig.config,
+              customStyle: nodeConfig.style
+            }}
+          />
+        );
+      }
+    });
+
+    setCustomNodeTypes(newCustomNodeTypes);
+    
+    // Add custom nodes to the workflow
+    config.nodes?.forEach((nodeConfig: any, index: number) => {
+      const nodeId = `${nodeConfig.type}-${Date.now()}-${index}`;
+      const newNode: Node = {
+        id: nodeId,
+        type: nodeConfig.type,
+        position: nodeConfig.position || { x: 300 + (index * 250), y: 200 },
+        data: {
+          label: nodeConfig.label,
+          description: nodeConfig.description,
+          status: 'idle',
+          config: {},
+          customConfig: nodeConfig.config,
+          customStyle: nodeConfig.style,
+          onConfigure: () => openNodeConfiguration(nodeId),
+          onDelete: () => onDeleteNode(nodeId),
+        },
+      };
+
+      setNodes((nds) => nds.concat(newNode));
+    });
+
+    toast.success(`Applied custom workflow: ${config.name}`);
+  }, [setNodes, openNodeConfiguration, onDeleteNode]);
 
   const onRunWorkflow = useCallback(async () => {
     // Enhanced workflow validation
@@ -419,6 +475,9 @@ const WorkflowBuilder = () => {
         onAddNode={onAddNode}
         isOpen={sidebarOpen}
         onToggle={() => setSidebarOpen(!sidebarOpen)}
+        onOpenJsonBuilder={() => setJsonBuilderOpen(true)}
+        onSaveWorkflow={onSaveWorkflow}
+        onLoadWorkflow={() => toast.info('Load workflow functionality coming soon')}
       />
       
       <WorkflowToolbar 
@@ -458,7 +517,7 @@ const WorkflowBuilder = () => {
             setEdges((eds) => eds.filter(edge => !edgesToDelete.find(e => e.id === edge.id)));
             toast.success('Edge deleted');
           }}
-          nodeTypes={nodeTypes}
+          nodeTypes={{ ...nodeTypes, ...customNodeTypes }}
           fitView
           attributionPosition="bottom-left"
           className="workflow-canvas"
@@ -498,17 +557,39 @@ const WorkflowBuilder = () => {
       
       {/* Configuration Modal */}
       {selectedNode && (
-        <NodeConfigModal
-          isOpen={configModalOpen}
-          onClose={() => {
-            setConfigModalOpen(false);
-            setSelectedNode(null);
-          }}
-          onSave={handleNodeConfigSave}
-          nodeData={selectedNode.data as WorkflowNodeData}
-          nodeType={selectedNode.type || ''}
-        />
+        isCustomNode ? (
+          <CustomNodeConfigModal
+            isOpen={configModalOpen}
+            onClose={() => {
+              setConfigModalOpen(false);
+              setSelectedNode(null);
+              setIsCustomNode(false);
+            }}
+            onSave={handleNodeConfigSave}
+            nodeData={selectedNode.data as WorkflowNodeData & { customConfig?: any }}
+            nodeType={selectedNode.type}
+          />
+        ) : (
+          <NodeConfigModal
+            isOpen={configModalOpen}
+            onClose={() => {
+              setConfigModalOpen(false);
+              setSelectedNode(null);
+              setIsCustomNode(false);
+            }}
+            onSave={handleNodeConfigSave}
+            nodeData={selectedNode.data as WorkflowNodeData}
+            nodeType={selectedNode.type}
+          />
+        )
       )}
+
+      {/* JSON Workflow Builder Modal */}
+      <JsonWorkflowBuilder
+        isOpen={jsonBuilderOpen}
+        onClose={() => setJsonBuilderOpen(false)}
+        onApplyConfig={handleJsonWorkflowConfig}
+      />
     </div>
   );
 };

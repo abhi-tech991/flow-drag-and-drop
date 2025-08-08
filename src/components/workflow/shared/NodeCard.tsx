@@ -17,6 +17,10 @@ interface NodeCardProps {
   className?: string;
   children?: React.ReactNode;
   glowColor?: string;
+  customStyle?: {
+    borderColor?: string;
+    backgroundColor?: string;
+  };
 }
 
 export const NodeCard: React.FC<NodeCardProps> = ({
@@ -27,7 +31,8 @@ export const NodeCard: React.FC<NodeCardProps> = ({
   badge,
   className,
   children,
-  glowColor
+  glowColor,
+  customStyle
 }) => {
   const getStatusColor = () => {
     switch (status) {
@@ -38,12 +43,20 @@ export const NodeCard: React.FC<NodeCardProps> = ({
     }
   };
 
+  const cardStyle = customStyle ? {
+    borderColor: customStyle.borderColor,
+    backgroundColor: customStyle.backgroundColor,
+  } : {};
+
   return (
-    <Card className={cn(
-      "min-w-[280px] p-4 shadow-lg border-2 bg-card transition-all duration-300 hover:shadow-xl animate-fade-in",
-      getStatusColor(),
-      className
-    )}>
+    <Card 
+      className={cn(
+        "min-w-[280px] p-4 shadow-lg border-2 bg-card transition-all duration-300 hover:shadow-xl animate-fade-in",
+        getStatusColor(),
+        className
+      )}
+      style={cardStyle}
+    >
       <div className="flex items-start gap-3">
         <div className="flex-shrink-0">
           <div className={cn(
