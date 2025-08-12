@@ -1,6 +1,6 @@
 import React, { memo } from 'react';
 import { Position } from '@xyflow/react';
-import { BarChart3, Eye } from 'lucide-react';
+import { BarChart3, Eye, Trash2 } from 'lucide-react';
 import { NodeCard } from '../shared/NodeCard';
 import { NodeHandle } from '../shared/NodeHandle';
 import { NodeStatusIndicator } from '../shared/NodeStatusIndicator';
@@ -21,6 +21,12 @@ const VisualizationNode: React.FC<VisualizationNodeProps> = ({
   const handleConfigure = () => {
     if (data.onConfigure) {
       data.onConfigure();
+    }
+  };
+
+  const handleDelete = () => {
+    if (data.onDelete) {
+      data.onDelete();
     }
   };
 
@@ -55,13 +61,22 @@ const VisualizationNode: React.FC<VisualizationNodeProps> = ({
           progress={data.status === 'processing' ? 85 : undefined}
         />
         
-        <NodeActionButton
-          icon={Eye}
-          label="View"
-          onClick={handleConfigure}
-          color={vizColor}
-          variant="ghost"
-        />
+        <div className="flex gap-2">
+          <NodeActionButton
+            icon={Eye}
+            label="View"
+            onClick={handleConfigure}
+            color={vizColor}
+            variant="ghost"
+          />
+          <NodeActionButton
+            icon={Trash2}
+            label="Delete"
+            onClick={handleDelete}
+            variant="ghost"
+            className="hover:text-destructive hover:border-destructive"
+          />
+        </div>
       </div>
       
       <NodeHandle

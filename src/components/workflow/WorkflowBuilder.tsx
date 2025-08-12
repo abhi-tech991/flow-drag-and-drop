@@ -10,6 +10,7 @@ import {
   Connection,
   Edge,
   Node,
+  MarkerType,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 
@@ -96,8 +97,14 @@ const WorkflowBuilder = () => {
         id: `${params.source}-${params.target}`,
         source: params.source,
         target: params.target,
-        type: 'straight',
-        style: { stroke: 'hsl(var(--primary))', strokeWidth: 2 }
+        type: 'smoothstep',
+        style: { stroke: 'hsl(var(--primary))', strokeWidth: 2 },
+        markerEnd: {
+          type: MarkerType.ArrowClosed,
+          width: 20,
+          height: 20,
+          color: 'hsl(var(--primary))',
+        },
       };
       
       setEdges((eds) => addEdge(newEdge, eds));
@@ -515,7 +522,7 @@ const WorkflowBuilder = () => {
           onNodesDelete={onNodesDelete}
           onEdgesDelete={(edgesToDelete) => {
             setEdges((eds) => eds.filter(edge => !edgesToDelete.find(e => e.id === edge.id)));
-            toast.success('Edge deleted');
+            toast.success(`Deleted ${edgesToDelete.length} connection(s)`);
           }}
           nodeTypes={{ ...nodeTypes, ...customNodeTypes }}
           fitView
@@ -523,8 +530,14 @@ const WorkflowBuilder = () => {
           className="workflow-canvas"
           deleteKeyCode={['Delete', 'Backspace']}
           defaultEdgeOptions={{
-            type: 'straight',
-            style: { stroke: 'hsl(var(--primary))', strokeWidth: 2 }
+            type: 'smoothstep',
+            style: { stroke: 'hsl(var(--primary))', strokeWidth: 2 },
+            markerEnd: {
+              type: MarkerType.ArrowClosed,
+              width: 20,
+              height: 20,
+              color: 'hsl(var(--primary))',
+            },
           }}
         >
           <Background 

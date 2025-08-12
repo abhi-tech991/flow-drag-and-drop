@@ -1,6 +1,6 @@
 import React, { memo } from 'react';
 import { Position } from '@xyflow/react';
-import { Database, Settings } from 'lucide-react';
+import { Database, Settings, Trash2 } from 'lucide-react';
 import { NodeCard } from '../shared/NodeCard';
 import { NodeHandle } from '../shared/NodeHandle';
 import { NodeStatusIndicator } from '../shared/NodeStatusIndicator';
@@ -24,6 +24,12 @@ const DataSourceNode: React.FC<DataSourceNodeProps> = ({
     }
   };
 
+  const handleDelete = () => {
+    if (data.onDelete) {
+      data.onDelete();
+    }
+  };
+
   return (
     <NodeCard
       title={data.label}
@@ -40,13 +46,22 @@ const DataSourceNode: React.FC<DataSourceNodeProps> = ({
           progress={data.status === 'processing' ? 30 : undefined}
         />
         
-        <NodeActionButton
-          icon={Settings}
-          label="Configure"
-          onClick={handleConfigure}
-          color={dataSourceColor}
-          variant="ghost"
-        />
+        <div className="flex gap-2">
+          <NodeActionButton
+            icon={Settings}
+            label="Configure"
+            onClick={handleConfigure}
+            color={dataSourceColor}
+            variant="ghost"
+          />
+          <NodeActionButton
+            icon={Trash2}
+            label="Delete"
+            onClick={handleDelete}
+            variant="ghost"
+            className="hover:text-destructive hover:border-destructive"
+          />
+        </div>
       </div>
       
       <NodeHandle

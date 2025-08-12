@@ -1,6 +1,6 @@
 import React, { memo } from 'react';
 import { Position } from '@xyflow/react';
-import { Filter, Sliders } from 'lucide-react';
+import { Filter, Sliders, Trash2 } from 'lucide-react';
 import { NodeCard } from '../shared/NodeCard';
 import { NodeHandle } from '../shared/NodeHandle';
 import { NodeStatusIndicator } from '../shared/NodeStatusIndicator';
@@ -24,6 +24,12 @@ const FilterNode: React.FC<FilterNodeProps> = ({
     }
   };
 
+  const handleDelete = () => {
+    if (data.onDelete) {
+      data.onDelete();
+    }
+  };
+
   return (
     <NodeCard
       title={data.label}
@@ -40,13 +46,22 @@ const FilterNode: React.FC<FilterNodeProps> = ({
           progress={data.status === 'processing' ? 45 : undefined}
         />
         
-        <NodeActionButton
-          icon={Sliders}
-          label="Filters"
-          onClick={handleConfigureFilters}
-          color={filterColor}
-          variant="ghost"
-        />
+        <div className="flex gap-2">
+          <NodeActionButton
+            icon={Sliders}
+            label="Filters"
+            onClick={handleConfigureFilters}
+            color={filterColor}
+            variant="ghost"
+          />
+          <NodeActionButton
+            icon={Trash2}
+            label="Delete"
+            onClick={handleDelete}
+            variant="ghost"
+            className="hover:text-destructive hover:border-destructive"
+          />
+        </div>
       </div>
       
       <NodeHandle

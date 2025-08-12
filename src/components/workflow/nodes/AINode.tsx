@@ -1,6 +1,6 @@
 import React, { memo } from 'react';
 import { Position } from '@xyflow/react';
-import { Brain, Sparkles } from 'lucide-react';
+import { Brain, Sparkles, Trash2 } from 'lucide-react';
 import { NodeCard } from '../shared/NodeCard';
 import { NodeHandle } from '../shared/NodeHandle';
 import { NodeStatusIndicator } from '../shared/NodeStatusIndicator';
@@ -25,6 +25,12 @@ const AINode: React.FC<AINodeProps> = ({
     }
   };
 
+  const handleDelete = () => {
+    if (data.onDelete) {
+      data.onDelete();
+    }
+  };
+
   return (
     <NodeCard
       title={data.label}
@@ -46,13 +52,22 @@ const AINode: React.FC<AINodeProps> = ({
           progress={data.status === 'processing' ? 75 : undefined}
         />
         
-        <NodeActionButton
-          icon={Sparkles}
-          label="Train"
-          onClick={handleTrainModel}
-          color={aiColor}
-          variant="ghost"
-        />
+        <div className="flex gap-2">
+          <NodeActionButton
+            icon={Sparkles}
+            label="Train"
+            onClick={handleTrainModel}
+            color={aiColor}
+            variant="ghost"
+          />
+          <NodeActionButton
+            icon={Trash2}
+            label="Delete"
+            onClick={handleDelete}
+            variant="ghost"
+            className="hover:text-destructive hover:border-destructive"
+          />
+        </div>
       </div>
       
       <NodeHandle

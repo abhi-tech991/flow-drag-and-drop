@@ -8,6 +8,7 @@ export interface WorkflowNodeData extends Record<string, unknown> {
   status?: 'idle' | 'processing' | 'completed' | 'error';
   config?: Record<string, any>;
   onConfigure?: () => void;
+  onDelete?: () => void;
   progress?: number;
   errorMessage?: string;
 }
