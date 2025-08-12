@@ -543,6 +543,11 @@ const WorkflowBuilder = () => {
             setEdges((eds) => eds.filter(edge => !edgesToDelete.find(e => e.id === edge.id)));
             toast.success(`Deleted ${edgesToDelete.length} connection(s)`);
           }}
+          onEdgeDoubleClick={(event, edge) => {
+            event.preventDefault();
+            setEdges((eds) => eds.filter(e => e.id !== edge.id));
+            toast.success('Connection deleted');
+          }}
           nodeTypes={{ ...nodeTypes, ...customNodeTypes }}
           fitView
           attributionPosition="bottom-left"
