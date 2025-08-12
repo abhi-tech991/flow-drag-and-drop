@@ -116,6 +116,12 @@ const WorkflowBuilder = () => {
   const openNodeConfiguration = useCallback((nodeId: string) => {
     const node = nodes.find(n => n.id === nodeId);
     if (node) {
+      // Start and end nodes don't need configuration
+      if (node.type === 'start' || node.type === 'end') {
+        toast.info('Start and End nodes do not require configuration');
+        return;
+      }
+      
       setSelectedNode(node);
       // Check if it's a custom node type
       setIsCustomNode(Object.keys(customNodeTypes).includes(node.type));
@@ -146,8 +152,12 @@ const WorkflowBuilder = () => {
         ...node,
         data: {
           ...node.data,
-          onConfigure: () => openNodeConfiguration(node.id),
-          onDelete: () => onDeleteNode(node.id),
+          onConfigure: node.type === 'start' || node.type === 'end' 
+            ? undefined 
+            : () => openNodeConfiguration(node.id),
+          onDelete: node.type === 'start' || node.type === 'end' 
+            ? undefined 
+            : () => onDeleteNode(node.id),
         },
       }))
     );
@@ -280,10 +290,19 @@ const WorkflowBuilder = () => {
       return;
     }
 
-    // Validate node configurations
+    // Validate node configurations (exclude start/end nodes)
     const unconfiguredNodes = nodes.filter(node => {
+      // Start and end nodes don't need configuration
       if (node.type === 'start' || node.type === 'end') return false;
+      
       const data = node.data as WorkflowNodeData;
+      
+      // For custom nodes, check if they have customConfig or regular config
+      if (data.customConfig && Object.keys(data.customConfig).length > 0) {
+        return false;
+      }
+      
+      // For regular nodes, check config
       return !data.config || Object.keys(data.config).length === 0;
     });
 

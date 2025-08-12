@@ -114,28 +114,66 @@ export const useWorkflowState = () => {
   const validateWorkflow = useCallback((nodes: Node[], edges: Edge[]) => {
     const errors: string[] = [];
     
-    // Check if workflow has at least one node
-    if (nodes.length === 0) {
-      errors.push('Workflow must have at least one step');
+    // Check if workflow has start and end nodes
+    const startNode = nodes.find(node => node.type === 'start');
+    const endNode = nodes.find(node => node.type === 'end');
+    
+    if (!startNode) {
+      errors.push('Workflow must have a start node');
+    }
+    if (!endNode) {
+      errors.push('Workflow must have an end node');
     }
     
-    // Check for disconnected nodes (except single nodes)
-    if (nodes.length > 1) {
+    // Check if workflow has at least 3 nodes (start, some processing, end)
+    if (nodes.length < 2) {
+      errors.push('Workflow must have at least start and end nodes');
+    }
+    
+    // Check for disconnected nodes (excluding start/end nodes that can be isolated)
+    if (nodes.length > 2) {
       const connectedNodeIds = new Set();
       edges.forEach(edge => {
         connectedNodeIds.add(edge.source);
         connectedNodeIds.add(edge.target);
       });
       
-      const disconnectedNodes = nodes.filter(node => !connectedNodeIds.has(node.id));
+      const disconnectedNodes = nodes.filter(node => 
+        !connectedNodeIds.has(node.id) && 
+        node.type !== 'start' && 
+        node.type !== 'end'
+      );
+      
       if (disconnectedNodes.length > 0) {
         errors.push(`${disconnectedNodes.length} disconnected step(s) found`);
       }
     }
     
-    // Check for required configurations
+    // Check if start node has outgoing connections
+    if (startNode && edges.filter(edge => edge.source === startNode.id).length === 0) {
+      errors.push('Start node must be connected to other steps');
+    }
+    
+    // Check if end node has incoming connections  
+    if (endNode && edges.filter(edge => edge.target === endNode.id).length === 0) {
+      errors.push('End node must be connected from other steps');
+    }
+    
+    // Check for required configurations (exclude start and end nodes)
     const unconfiguredNodes = nodes.filter(node => {
+      // Start and end nodes don't need configuration
+      if (node.type === 'start' || node.type === 'end') {
+        return false;
+      }
+      
       const data = node.data as WorkflowNodeData;
+      
+      // For custom nodes, check if they have customConfig or regular config
+      if (data.customConfig && Object.keys(data.customConfig).length > 0) {
+        return false;
+      }
+      
+      // For regular nodes, check config
       return !data.config || Object.keys(data.config).length === 0;
     });
     
