@@ -1,0 +1,242 @@
+{
+  "nodeDefinitions": [
+    {
+      "id": "data-source-erp",
+      "type": "dataSource",
+      "label": "ERP Data Source",
+      "description": "Connect to ERP systems like SAP, Oracle, or custom APIs",
+      "icon": "Database",
+      "color": "blue",
+      "category": "source",
+      "configFields": [
+        {
+          "name": "connectionString",
+          "type": "text",
+          "label": "Connection String",
+          "placeholder": "Enter database connection string",
+          "required": true
+        },
+        {
+          "name": "query",
+          "type": "textarea",
+          "label": "SQL Query",
+          "placeholder": "SELECT * FROM...",
+          "required": true
+        },
+        {
+          "name": "refreshInterval",
+          "type": "number",
+          "label": "Refresh Interval (minutes)",
+          "validation": { "min": 1, "max": 1440 }
+        }
+      ],
+      "actions": [
+        {
+          "type": "configure",
+          "label": "Configure",
+          "icon": "Settings",
+          "color": "primary"
+        },
+        {
+          "type": "delete",
+          "label": "Delete",
+          "icon": "Trash2",
+          "color": "destructive"
+        }
+      ]
+    },
+    {
+      "id": "data-processor",
+      "type": "process",
+      "label": "Data Processor",
+      "description": "Transform and clean data using custom rules",
+      "icon": "Zap",
+      "color": "orange",
+      "category": "transform",
+      "configFields": [
+        {
+          "name": "transformationType",
+          "type": "select",
+          "label": "Transformation Type",
+          "required": true,
+          "options": [
+            { "value": "clean", "label": "Data Cleaning" },
+            { "value": "merge", "label": "Data Merging" },
+            { "value": "aggregate", "label": "Data Aggregation" }
+          ]
+        },
+        {
+          "name": "rules",
+          "type": "textarea",
+          "label": "Processing Rules",
+          "placeholder": "Define your transformation rules..."
+        },
+        {
+          "name": "validateOutput",
+          "type": "boolean",
+          "label": "Validate Output"
+        }
+      ],
+      "actions": [
+        {
+          "type": "configure",
+          "label": "Configure",
+          "icon": "Settings"
+        },
+        {
+          "type": "delete",
+          "label": "Delete",
+          "icon": "Trash2"
+        }
+      ]
+    },
+    {
+      "id": "ai-categorizer",
+      "type": "ai",
+      "label": "AI Categorizer",
+      "description": "Use AI to categorize and classify data automatically",
+      "icon": "Brain",
+      "color": "purple",
+      "category": "ai",
+      "configFields": [
+        {
+          "name": "model",
+          "type": "select",
+          "label": "AI Model",
+          "required": true,
+          "options": [
+            { "value": "gpt-4", "label": "GPT-4" },
+            { "value": "claude", "label": "Claude" },
+            { "value": "custom", "label": "Custom Model" }
+          ]
+        },
+        {
+          "name": "categories",
+          "type": "textarea",
+          "label": "Categories",
+          "placeholder": "List categories separated by commas"
+        },
+        {
+          "name": "confidence",
+          "type": "number",
+          "label": "Minimum Confidence (%)",
+          "validation": { "min": 0, "max": 100 }
+        }
+      ],
+      "actions": [
+        {
+          "type": "configure",
+          "label": "Configure AI",
+          "icon": "Settings"
+        },
+        {
+          "type": "custom",
+          "label": "Test Model",
+          "icon": "Play",
+          "handler": "testAIModel"
+        },
+        {
+          "type": "delete",
+          "label": "Delete",
+          "icon": "Trash2"
+        }
+      ]
+    },
+    {
+      "id": "data-filter",
+      "type": "filter",
+      "label": "Data Filter",
+      "description": "Filter data based on conditions and criteria",
+      "icon": "Filter",
+      "color": "green",
+      "category": "filter",
+      "configFields": [
+        {
+          "name": "filterType",
+          "type": "select",
+          "label": "Filter Type",
+          "options": [
+            { "value": "include", "label": "Include matching" },
+            { "value": "exclude", "label": "Exclude matching" }
+          ]
+        },
+        {
+          "name": "conditions",
+          "type": "textarea",
+          "label": "Filter Conditions",
+          "placeholder": "field = value AND field2 > 100"
+        }
+      ],
+      "actions": [
+        {
+          "type": "configure",
+          "label": "Configure",
+          "icon": "Settings"
+        },
+        {
+          "type": "delete",
+          "label": "Delete",
+          "icon": "Trash2"
+        }
+      ]
+    },
+    {
+      "id": "chart-visualizer",
+      "type": "visualization",
+      "label": "Chart Visualizer",
+      "description": "Create charts and visualizations from processed data",
+      "icon": "BarChart3",
+      "color": "indigo",
+      "category": "output",
+      "configFields": [
+        {
+          "name": "chartType",
+          "type": "select",
+          "label": "Chart Type",
+          "required": true,
+          "options": [
+            { "value": "bar", "label": "Bar Chart" },
+            { "value": "line", "label": "Line Chart" },
+            { "value": "pie", "label": "Pie Chart" },
+            { "value": "scatter", "label": "Scatter Plot" }
+          ]
+        },
+        {
+          "name": "xAxis",
+          "type": "text",
+          "label": "X-Axis Field",
+          "required": true
+        },
+        {
+          "name": "yAxis",
+          "type": "text",
+          "label": "Y-Axis Field",
+          "required": true
+        },
+        {
+          "name": "title",
+          "type": "text",
+          "label": "Chart Title"
+        }
+      ],
+      "actions": [
+        {
+          "type": "configure",
+          "label": "Configure",
+          "icon": "Settings"
+        },
+        {
+          "type": "custom",
+          "label": "Preview",
+          "icon": "Eye",
+          "handler": "previewChart"
+        },
+        {
+          "type": "delete",
+          "label": "Delete",
+          "icon": "Trash2"
+        }
+      ]
+    }
+  ]
+}

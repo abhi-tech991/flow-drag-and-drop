@@ -1,10 +1,10 @@
 import React from 'react';
-import WorkflowBuilder from '@/components/workflow/WorkflowBuilder';
+import { SimpleWorkflowBuilder } from '@/components/workflow/SimpleWorkflowBuilder';
 
 const Index = () => {
   return (
     <div className="min-h-screen bg-background">
-      <WorkflowBuilder />
+      <SimpleWorkflowBuilder />
     </div>
   );
 };

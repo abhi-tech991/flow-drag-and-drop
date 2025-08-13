@@ -1,0 +1,127 @@
+{
+  "id": "sample-erp-analysis",
+  "name": "ERP Data Analysis Workflow",
+  "description": "A complete workflow for processing ERP data, applying AI categorization, and generating visualizations",
+  "version": "1.0.0",
+  "nodes": [
+    {
+      "id": "start-1",
+      "type": "start",
+      "position": { "x": 50, "y": 200 },
+      "data": {
+        "label": "Start"
+      }
+    },
+    {
+      "id": "erp-source-1",
+      "type": "dataSource",
+      "position": { "x": 250, "y": 200 },
+      "data": {
+        "label": "ERP Data Source",
+        "config": {
+          "connectionString": "postgresql://user:pass@localhost:5432/erp_db",
+          "query": "SELECT * FROM transactions WHERE created_date >= '2024-01-01'",
+          "refreshInterval": 60
+        }
+      }
+    },
+    {
+      "id": "processor-1",
+      "type": "process",
+      "position": { "x": 450, "y": 200 },
+      "data": {
+        "label": "Data Processor",
+        "config": {
+          "transformationType": "clean",
+          "rules": "Remove duplicates, standardize currencies",
+          "validateOutput": true
+        }
+      }
+    },
+    {
+      "id": "ai-categorizer-1",
+      "type": "ai",
+      "position": { "x": 650, "y": 200 },
+      "data": {
+        "label": "AI Categorizer",
+        "config": {
+          "model": "gpt-4",
+          "categories": "Revenue, Expenses, Assets, Liabilities",
+          "confidence": 85
+        }
+      }
+    },
+    {
+      "id": "filter-1",
+      "type": "filter",
+      "position": { "x": 850, "y": 200 },
+      "data": {
+        "label": "High-Value Filter",
+        "config": {
+          "filterType": "include",
+          "conditions": "amount > 10000"
+        }
+      }
+    },
+    {
+      "id": "visualizer-1",
+      "type": "visualization",
+      "position": { "x": 1050, "y": 200 },
+      "data": {
+        "label": "Revenue Chart",
+        "config": {
+          "chartType": "bar",
+          "xAxis": "category",
+          "yAxis": "amount",
+          "title": "High-Value Transactions by Category"
+        }
+      }
+    },
+    {
+      "id": "end-1",
+      "type": "end",
+      "position": { "x": 1250, "y": 200 },
+      "data": {
+        "label": "End"
+      }
+    }
+  ],
+  "connections": [
+    {
+      "id": "e1",
+      "source": "start-1",
+      "target": "erp-source-1"
+    },
+    {
+      "id": "e2",
+      "source": "erp-source-1",
+      "target": "processor-1"
+    },
+    {
+      "id": "e3",
+      "source": "processor-1",
+      "target": "ai-categorizer-1"
+    },
+    {
+      "id": "e4",
+      "source": "ai-categorizer-1",
+      "target": "filter-1"
+    },
+    {
+      "id": "e5",
+      "source": "filter-1",
+      "target": "visualizer-1"
+    },
+    {
+      "id": "e6",
+      "source": "visualizer-1",
+      "target": "end-1"
+    }
+  ],
+  "metadata": {
+    "created": "2024-08-13T10:00:00Z",
+    "modified": "2024-08-13T10:00:00Z",
+    "author": "System",
+    "tags": ["ERP", "AI", "Analytics", "Visualization"]
+  }
+}
