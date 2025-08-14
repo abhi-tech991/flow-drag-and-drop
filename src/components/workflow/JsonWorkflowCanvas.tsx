@@ -305,7 +305,7 @@ export const JsonWorkflowCanvas: React.FC<JsonWorkflowCanvasProps> = ({
         <Background gap={16} />
       </ReactFlow>
 
-      {selectedNode && selectedNode.data.nodeDefinition && selectedNode.data.nodeDefinition.id && (
+      {selectedNode && selectedNode.data?.nodeDefinition && (
         <JsonNodeConfigModal
           isOpen={configModalOpen}
           onClose={() => {
@@ -313,7 +313,7 @@ export const JsonWorkflowCanvas: React.FC<JsonWorkflowCanvasProps> = ({
             setSelectedNode(null);
           }}
           onSave={handleNodeConfigSave}
-          nodeDefinition={selectedNode.data.nodeDefinition}
+          nodeDefinition={selectedNode.data.nodeDefinition as NodeDefinition}
           initialConfig={selectedNode.data.config || {}}
         />
       )}
