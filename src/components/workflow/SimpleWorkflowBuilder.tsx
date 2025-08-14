@@ -366,13 +366,24 @@ export const SimpleWorkflowBuilder: React.FC = () => {
         </div>
 
         {/* Canvas */}
-        <div className="flex-1">
-          <JsonWorkflowCanvas
-            nodeDefinitions={nodeDefinitions}
-            onAddNodeToCanvas={handleAddNodeToCanvas}
-            workflow={currentWorkflow}
-            onWorkflowChange={handleWorkflowChange}
-          />
+        <div className="flex-1 h-full">
+          {currentWorkflow && nodeDefinitions.length > 0 ? (
+            <JsonWorkflowCanvas
+              nodeDefinitions={nodeDefinitions}
+              onAddNodeToCanvas={handleAddNodeToCanvas}
+              workflow={currentWorkflow}
+              onWorkflowChange={handleWorkflowChange}
+            />
+          ) : (
+            <div className="flex items-center justify-center h-full">
+              <div className="text-center">
+                <h3 className="text-lg font-medium text-muted-foreground">Loading Workflow...</h3>
+                <p className="text-sm text-muted-foreground mt-2">
+                  Please wait while we initialize the workflow canvas.
+                </p>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
